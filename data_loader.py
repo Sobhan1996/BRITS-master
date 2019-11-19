@@ -13,6 +13,7 @@ class MySet(Dataset):
     def __init__(self):
         super(MySet, self).__init__()
         self.content = open('./json/json').readlines()
+        # self.content = open('./json/jsonAir').readlines()
 
         indices = np.arange(len(self.content))
         val_indices = np.random.choice(indices, len(self.content) // 5)
