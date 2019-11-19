@@ -50,6 +50,9 @@ class PhysioNetDataset(BRITSDataset):
 
         self.label_df = pd.read_csv('./raw/Outcomes-a.txt').set_index('RecordID')['In-hospital_death']
 
+        self.window = 48
+        self.columns = 35
+
     def set_ids(self):
         for file_name in os.listdir('./raw'):
             # the patient data in PhysioNet contains 6-digits
@@ -92,23 +95,57 @@ class PhysioNetDataset(BRITSDataset):
         self.fs.close()
 
 
-def parse_delta(masks, dir_):
+class AirQualityDataset(BRITSDataset):
+    def __init__(self, window):
+        self.data_frame = pd.read_csv('./PRSA_data_2010.1.1-2014.12.31.csv')
+        self.window = window
+        BRITSDataset.__init__(self)
+
+        self.data_frame = pd.get_dummies(self.data_frame)
+        self.columns = self.data_frame.shape[1]
+
+        self.mean = np.asarray(list(self.data_frame.mean(axis=0)))
+        self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
+
+        self.fs = open('./json/jsonAir', 'w')
+
+    def set_ids(self):
+        self.ids = range(0, self.data_frame.shape[0] / self.window)
+
+    def get_label(self, id_):
+        return 0
+
+    def read_data(self, id_):
+        frame = self.data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
+        evals = []
+        for i in range(self.window):
+            evals.append(list(frame.iloc[i, :]))
+
+        evals = (np.array(evals) - self.mean) / self.std
+
+        return evals
+
+    def __del__(self):
+        self.fs.close()
+
+
+def parse_delta(masks, window, columns, dir_):
     if dir_ == 'backward':
         masks = masks[::-1]
 
     deltas = []
 
-    for h in range(48):
+    for h in range(window):
         if h == 0:
-            deltas.append(np.ones(35))
+            deltas.append(np.ones(columns))
         else:
-            deltas.append(np.ones(35) + (1 - masks[h]) * deltas[-1])
+            deltas.append(np.ones(columns) + (1 - masks[h]) * deltas[-1])
 
     return np.array(deltas)
 
 
-def parse_rec(values, masks, evals, eval_masks, dir_):
-    deltas = parse_delta(masks, dir_)
+def parse_rec(values, masks, evals, eval_masks, window, columns, dir_):
+    deltas = parse_delta(masks, window, columns, dir_)
 
     # only used in GRU-D
     forwards = pd.DataFrame(values).fillna(method='ffill').fillna(0.0).as_matrix()
@@ -155,15 +192,16 @@ def parse_id(id_, ds):
     rec = {'label': label}
 
     # prepare the model for both directions
-    rec['forward'] = parse_rec(values, masks, evals, eval_masks, dir_='forward')
-    rec['backward'] = parse_rec(values[::-1], masks[::-1], evals[::-1], eval_masks[::-1], dir_='backward')
+    rec['forward'] = parse_rec(values, masks, evals, eval_masks, ds.window, ds.columns, dir_='forward')
+    rec['backward'] = parse_rec(values[::-1], masks[::-1], evals[::-1], eval_masks[::-1], ds.window, ds.columns, dir_='backward')
     rec = json.dumps(rec)
     # print(rec)
 
     ds.fs.write(rec + '\n')
 
 
-dataset = PhysioNetDataset()
+# dataset = PhysioNetDataset()
+dataset = AirQualityDataset(50)
 
 for id_ in dataset.ids:
     print('Processing patient {}'.format(id_))
