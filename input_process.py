@@ -88,6 +88,9 @@ class PhysioNetDataset(BRITSDataset):
 
         return evals
 
+    def __del__(self):
+        self.fs.close()
+
 
 def parse_delta(masks, dir_):
     if dir_ == 'backward':
@@ -169,6 +172,4 @@ for id_ in dataset.ids:
     except Exception as e:
         print(e)
         continue
-
-dataset.fs.close()
 
