@@ -46,8 +46,6 @@ class PhysioNetDataset(BRITSDataset):
              9.062327978713556, 106.50939503021543, 170.65318497610315, 14.856134327604906, 1.6369529387005546,
              133.96778334724377])
 
-        self.time_range = 48
-
         self.fs = open('./json/json', 'w')
 
         self.label_df = pd.read_csv('./raw/Outcomes-a.txt').set_index('RecordID')['In-hospital_death']
@@ -74,19 +72,19 @@ class PhysioNetDataset(BRITSDataset):
 
             values = []
 
-            for attr in attributes:
+            for attr in self.attributes:
                 if x.has_key(attr):
                     values.append(x[attr])
                 else:
                     values.append(np.nan)
             return values
 
-        data = pd.read_csv('./raw/{}.txt'.format(id_))
-        data['Time'] = data['Time'].apply(lambda x: to_time_bin(x))
+        data = pd.read_csv('./raw/{}.txt'.format(id_))  # 1 read data from one file which is one time series for one person
+        data['Time'] = data['Time'].apply(lambda x: to_time_bin(x))  # 2 removing minutes from time column
         evals = []
         for h in range(48):
-            evals.append(parse_data(data[data['Time'] == h]))
-        evals = (np.array(evals) - mean) / std
+            evals.append(parse_data(data[data['Time'] == h]))  # 3 for each timestamp(hour) if an attribute is present we put it otherwise nan
+        evals = (np.array(evals) - self.mean) / self.std
 
         return evals
 
@@ -181,18 +179,9 @@ def parse_rec(values, masks, evals, eval_masks, dir_):
     return rec
 
 
-def parse_id(id_):
-    data = pd.read_csv('./raw/{}.txt'.format(id_))  # 1 read data from one file which is one time series for one person
-    # accumulate the records within one hour
-    data['Time'] = data['Time'].apply(lambda x: to_time_bin(x))     # 2 removing minutes from time column
+def parse_id(id_, ds):
 
-    evals = []
-
-    # merge all the metrics within one hour
-    for h in range(48):
-        evals.append(parse_data(data[data['Time'] == h]))   # 3 for each timestamp(hour) if an attribute is present we put it otherwise nan
-
-    evals = (np.array(evals) - mean) / std          # 4 no need to explain
+    evals = ds.read_data(id_)
 
     shp = evals.shape
 
@@ -214,7 +203,7 @@ def parse_id(id_):
     masks = masks.reshape(shp)
     eval_masks = eval_masks.reshape(shp)    # 10 reshaping everything to its original shape
 
-    label = out.loc[int(id_)]
+    label = ds.get_label(id_)
 
     rec = {'label': label}
 
@@ -224,16 +213,19 @@ def parse_id(id_):
     rec = json.dumps(rec)
     print(rec)
 
-    fs.write(rec + '\n')
+    ds.fs.write(rec + '\n')
 
 
-for id_ in patient_ids:
+dataset = PhysioNetDataset()
+
+for id_ in dataset.ids:
     print('Processing patient {}'.format(id_))
     try:
-        parse_id(id_)
+        parse_id(id_, dataset)
     except Exception as e:
         print(e)
         continue
 
+dataset.fs.close()
 fs.close()
 
