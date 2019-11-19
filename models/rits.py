@@ -16,7 +16,7 @@ from sklearn import metrics
 
 import json
 
-with open('settings.txt') as json_file:
+with open('./models/settings.txt') as json_file:
     data = json.load(json_file)
 
 SEQ_LEN = data['SEQ_LEN']
