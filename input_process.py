@@ -155,7 +155,7 @@ def parse_id(id_, ds):
     rec['forward'] = parse_rec(values, masks, evals, eval_masks, dir_='forward')
     rec['backward'] = parse_rec(values[::-1], masks[::-1], evals[::-1], eval_masks[::-1], dir_='backward')
     rec = json.dumps(rec)
-    print(rec)
+    # print(rec)
 
     ds.fs.write(rec + '\n')
 

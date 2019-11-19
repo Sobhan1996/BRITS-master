@@ -34,20 +34,20 @@ def train(model):
 
     data_iter = data_loader.get_loader(batch_size=args.batch_size)
 
-    # for epoch in range(args.epochs):
-    #     model.train()
-    #
-    #     run_loss = 0.0
-    #
-    #     for idx, data in enumerate(data_iter):
-    #         data = utils.to_var(data)
-    #         ret = model.run_on_batch(data, optimizer, epoch)
-    #
-    #         run_loss += ret['loss'].item()
-    #
-    #         print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
-    #
-    #     evaluate(model, data_iter)
+    for epoch in range(args.epochs):
+        model.train()
+
+        run_loss = 0.0
+
+        for idx, data in enumerate(data_iter):
+            data = utils.to_var(data)
+            ret = model.run_on_batch(data, optimizer, epoch)
+
+            run_loss += ret['loss'].item()
+
+            print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
+
+        evaluate(model, data_iter)
 
 
 def evaluate(model, val_iter):
