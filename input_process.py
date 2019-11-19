@@ -106,8 +106,8 @@ class PhysioNetDataset(BRITSDataset):
 
 
 class AirQualityDataset(BRITSDataset):
-    def __init__(self, window):
-        self.data_frame = pd.read_csv('./PRSA_data_2010.1.1-2014.12.31.csv')
+    def __init__(self, window, source_dataset, output_json):
+        self.data_frame = pd.read_csv(source_dataset)
         BRITSDataset.__init__(self, window)
 
         self.data_frame = pd.get_dummies(self.data_frame)
@@ -116,7 +116,7 @@ class AirQualityDataset(BRITSDataset):
         self.mean = np.asarray(list(self.data_frame.mean(axis=0)))
         self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
 
-        self.fs = open('./json/jsonAir', 'w')
+        self.fs = open(output_json, 'w')
 
     def set_ids(self):
         self.ids = range(0, self.data_frame.shape[0] / self.window)
@@ -207,7 +207,7 @@ def parse_id(id_, ds):
 
 
 # dataset = PhysioNetDataset()
-dataset = AirQualityDataset(50)
+dataset = AirQualityDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir')
 
 for id_ in dataset.ids:
     print('Processing patient {}'.format(id_))
