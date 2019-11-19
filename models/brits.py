@@ -16,7 +16,12 @@ from sklearn import metrics
 
 from ipdb import set_trace
 
-SEQ_LEN = 48
+import json
+
+with open('settings.txt') as json_file:
+    data = json.load(json_file)
+
+SEQ_LEN = data['SEQ_LEN']
 RNN_HID_SIZE = 64
 
 

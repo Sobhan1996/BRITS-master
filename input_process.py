@@ -5,11 +5,15 @@ import re
 import numpy as np
 import pandas as pd
 import ujson as json
+import json as js
 
 class BRITSDataset:
-    def __init__(self):
+    def __init__(self, window):
         self.ids = []
+        self.window = window
         self.set_ids()
+        self.columns = 0
+        self.fs = None
 
     def set_ids(self):
         pass
@@ -20,10 +24,20 @@ class BRITSDataset:
     def get_label(self, id_):
         pass
 
+    def __del__(self):
+        data = {
+            "SEQ_LEN": self.window,
+            "COLUMNS": self.columns,
+            "JsonFile": self.fs.name
+        }
+        with open('./models/settings.txt', 'w') as outfile:
+            js.dump(data, outfile)
+        self.fs.close()
+
 
 class PhysioNetDataset(BRITSDataset):
     def __init__(self):
-        BRITSDataset.__init__(self)
+        BRITSDataset.__init__(self, 48)
         self.attributes = ['DiasABP', 'HR', 'Na', 'Lactate', 'NIDiasABP', 'PaO2', 'WBC', 'pH', 'Albumin', 'ALT', 'Glucose', 'SaO2',
                            'Temp', 'AST', 'Bilirubin', 'HCO3', 'BUN', 'RespRate', 'Mg', 'HCT', 'SysABP', 'FiO2', 'K', 'GCS',
                            'Cholesterol', 'NISysABP', 'TroponinT', 'MAP', 'TroponinI', 'PaCO2', 'Platelets', 'Urine', 'NIMAP',
@@ -50,7 +64,6 @@ class PhysioNetDataset(BRITSDataset):
 
         self.label_df = pd.read_csv('./raw/Outcomes-a.txt').set_index('RecordID')['In-hospital_death']
 
-        self.window = 48
         self.columns = 35
 
     def set_ids(self):
@@ -91,15 +104,11 @@ class PhysioNetDataset(BRITSDataset):
 
         return evals
 
-    def __del__(self):
-        self.fs.close()
-
 
 class AirQualityDataset(BRITSDataset):
     def __init__(self, window):
         self.data_frame = pd.read_csv('./PRSA_data_2010.1.1-2014.12.31.csv')
-        self.window = window
-        BRITSDataset.__init__(self)
+        BRITSDataset.__init__(self, window)
 
         self.data_frame = pd.get_dummies(self.data_frame)
         self.columns = self.data_frame.shape[1]
@@ -124,9 +133,6 @@ class AirQualityDataset(BRITSDataset):
         evals = (np.array(evals) - self.mean) / self.std
 
         return evals
-
-    def __del__(self):
-        self.fs.close()
 
 
 def parse_delta(masks, window, columns, dir_):

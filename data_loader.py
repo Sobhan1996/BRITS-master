@@ -9,11 +9,15 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
+import json
+
+with open('./models/settings.txt') as json_file:
+    data = json.load(json_file)
+
 class MySet(Dataset):
     def __init__(self):
         super(MySet, self).__init__()
-        self.content = open('./json/json').readlines()
-        # self.content = open('./json/jsonAir').readlines()
+        self.content = open(data['JsonFile']).readlines()
 
         indices = np.arange(len(self.content))
         val_indices = np.random.choice(indices, len(self.content) // 5)

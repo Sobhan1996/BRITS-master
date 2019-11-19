@@ -14,8 +14,13 @@ import data_loader
 from ipdb import set_trace
 from sklearn import metrics
 
-SEQ_LEN = 48
-COLUMNS = 35
+import json
+
+with open('settings.txt') as json_file:
+    data = json.load(json_file)
+
+SEQ_LEN = data['SEQ_LEN']
+COLUMNS = data['COLUMNS']
 
 def binary_cross_entropy_with_logits(input, target, weight=None, size_average=True, reduce=True):
     if not (target.size() == input.size()):
