@@ -141,9 +141,10 @@ class UCIDataset(BRITSDataset):
 class StockDataset(UCIDataset):
     def __init__(self, window, source_dataset, output_json):
         self.data_frame = pd.read_csv(source_dataset)
+        self.data_frame = self.data_frame.drop(['timestamp'], axis=1)
         BRITSDataset.__init__(self, window)
 
-        self.evals_data_frame = self.data_frame[['timestamp', ' truth']]
+        self.evals_data_frame = self.data_frame[[' truth']]
         self.data_frame = self.data_frame.drop([' truth'], axis=1)
 
         self.data_frame = pd.get_dummies(self.data_frame)

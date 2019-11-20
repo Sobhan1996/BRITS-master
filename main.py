@@ -15,6 +15,8 @@ import data_loader
 import pandas as pd
 import ujson as json
 
+import matplotlib.pyplot as plt
+
 from sklearn import metrics
 
 from ipdb import set_trace
@@ -34,6 +36,8 @@ def train(model):
 
     data_iter = data_loader.get_loader(batch_size=args.batch_size)
 
+    evals = []
+    imputations = []
     for epoch in range(args.epochs):
         model.train()
 
@@ -47,8 +51,11 @@ def train(model):
 
             print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
 
-        evaluate(model, data_iter)
+        evals, imputations = evaluate(model, data_iter)
 
+    plt.plot(evals)
+    plt.plot(imputations)
+    plt.show()
 
 def evaluate(model, val_iter):
     model.eval()
@@ -91,10 +98,11 @@ def evaluate(model, val_iter):
     labels = np.asarray(labels).astype('int32')
     preds = np.asarray(preds)
 
-    print 'AUC {}'.format(metrics.roc_auc_score(labels, preds))
+    # print 'AUC {}'.format(metrics.roc_auc_score(labels, preds))
 
     evals = np.asarray(evals)
     imputations = np.asarray(imputations)
+    print '\n'
 
     print 'MAE', np.abs(evals - imputations).mean()
 
@@ -105,6 +113,8 @@ def evaluate(model, val_iter):
 
     np.save('./result/{}_data'.format(args.model), save_impute)
     np.save('./result/{}_label'.format(args.model), save_label)
+
+    return evals, imputations
 
 
 def run():
