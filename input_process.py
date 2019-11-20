@@ -24,6 +24,9 @@ class BRITSDataset:
     def get_label(self, id_):
         pass
 
+    def update_evals(self, evals, id_):
+        return evals
+
     def __del__(self):
         data = {
             "SEQ_LEN": self.window,
@@ -140,6 +143,7 @@ class StockDataset(UCIDataset):
         self.data_frame = pd.read_csv(source_dataset)
         BRITSDataset.__init__(self, window)
 
+        self.evals_data_frame = self.data_frame[['timestamp', ' truth']]
         self.data_frame = self.data_frame.drop([' truth'], axis=1)
 
         self.data_frame = pd.get_dummies(self.data_frame)
@@ -149,6 +153,17 @@ class StockDataset(UCIDataset):
         self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
 
         self.fs = open(output_json, 'w')
+
+    def update_evals(self, orig_evals, id_):
+        frame = self.evals_data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
+        evals = []
+        for i in range(self.window):
+            evals.append(list(frame.iloc[i, :]))
+
+        evals = (np.array(evals) - self.mean) / self.std
+
+        return evals
+
 
 
 def parse_delta(masks, window, columns, dir_):
@@ -202,6 +217,8 @@ def parse_id(id_, ds):
 
     masks = ~np.isnan(values)   # 9 bool matrix which is true for not nan indices of values
     eval_masks = (~np.isnan(values)) ^ (~np.isnan(evals))  # for the 10 percent indices that we randomly selected, eval_masks is true in those indices
+
+    evals = ds.update_evals(evals, id_)
 
     evals = evals.reshape(shp)
     values = values.reshape(shp)
