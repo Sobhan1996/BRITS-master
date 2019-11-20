@@ -105,7 +105,7 @@ class PhysioNetDataset(BRITSDataset):
         return evals
 
 
-class AirQualityDataset(BRITSDataset):
+class UCIDataset(BRITSDataset):
     def __init__(self, window, source_dataset, output_json):
         self.data_frame = pd.read_csv(source_dataset)
         BRITSDataset.__init__(self, window)
@@ -133,6 +133,22 @@ class AirQualityDataset(BRITSDataset):
         evals = (np.array(evals) - self.mean) / self.std
 
         return evals
+
+
+class StockDataset(UCIDataset):
+    def __init__(self, window, source_dataset, output_json):
+        self.data_frame = pd.read_csv(source_dataset)
+        BRITSDataset.__init__(self, window)
+
+        self.data_frame = self.data_frame.drop([' truth'], axis=1)
+
+        self.data_frame = pd.get_dummies(self.data_frame)
+        self.columns = self.data_frame.shape[1]
+
+        self.mean = np.asarray(list(self.data_frame.mean(axis=0)))
+        self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
+
+        self.fs = open(output_json, 'w')
 
 
 def parse_delta(masks, window, columns, dir_):
@@ -207,7 +223,8 @@ def parse_id(id_, ds):
 
 
 # dataset = PhysioNetDataset()
-dataset = AirQualityDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir')
+# dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir')
+dataset = StockDataset(30, './stock10k.data', './json/jsonStock')
 
 for id_ in dataset.ids:
     print('Processing patient {}'.format(id_))
