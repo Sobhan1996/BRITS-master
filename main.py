@@ -36,8 +36,10 @@ def train(model):
 
     data_iter = data_loader.get_loader(batch_size=args.batch_size)
 
-    evals = []
-    imputations = []
+    all_evals = []
+    all_imputations = []
+    all_eval_masks = []
+
     for epoch in range(args.epochs):
         model.train()
 
@@ -51,19 +53,23 @@ def train(model):
 
             print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
 
-        evals, imputations = evaluate(model, data_iter)
+        all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
-    plt.plot(evals)
-    plt.plot(imputations)
+    plt.plot(all_evals[0:200, :], 'r')
+    plt.plot(all_imputations[0:200, :], 'b')
+    plt.plot(all_eval_masks[0:200, :], 'g.')
+    plt.subplots_adjust(wspace=2)
     plt.show()
 
 def evaluate(model, val_iter):
     model.eval()
 
-
     evals = []
     imputations = []
-
+    all_eval_masks = []
+    all_imputations = []
+    all_evals = []
+    flag = 1
 
     for idx, data in enumerate(val_iter):
         data = utils.to_var(data)
@@ -77,6 +83,18 @@ def evaluate(model, val_iter):
         evals += eval_[np.where(eval_masks == 1)].tolist()
         imputations += imputation[np.where(eval_masks == 1)].tolist()
 
+        first_d = eval_masks.shape[0]
+        second_d = eval_masks.shape[1]
+        third_d = eval_masks.shape[2]
+        if flag == 1:
+            all_evals = eval_.reshape(first_d * second_d, third_d)
+            all_imputations = imputation.reshape(first_d * second_d, third_d)
+            all_eval_masks = eval_masks.reshape(first_d * second_d, third_d)
+            flag = 0
+        else:
+            all_evals = np.concatenate((all_evals, eval_.reshape(first_d * second_d, third_d)), axis=0)
+            all_imputations = np.concatenate((all_imputations, imputation.reshape(first_d * second_d, third_d)), axis=0)
+            all_eval_masks = np.concatenate((all_eval_masks, eval_masks.reshape(first_d * second_d, third_d)), axis=0)
 
     evals = np.asarray(evals)
     imputations = np.asarray(imputations)
@@ -87,7 +105,7 @@ def evaluate(model, val_iter):
     print 'MRE', np.abs(evals - imputations).sum() / np.abs(evals).sum()
 
 
-    return evals, imputations
+    return all_evals, all_imputations, all_eval_masks
 
 
 def run():
