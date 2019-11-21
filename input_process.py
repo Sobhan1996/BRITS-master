@@ -16,6 +16,7 @@ class BRITSDataset:
         self.fs = None
         self.mean = []
         self.std = []
+        self.imputing_columns = []
 
     def set_ids(self):
         pass
@@ -115,10 +116,10 @@ class PhysioNetDataset(BRITSDataset):
 
 
 class UCIDataset(BRITSDataset):
-    def __init__(self, window, source_dataset, output_json):
+    def __init__(self, window, source_dataset, output_json, imputing_columns):
         self.data_frame = pd.read_csv(source_dataset)
         BRITSDataset.__init__(self, window)
-
+        self.imputing_columns = imputing_columns
         self.data_frame = pd.get_dummies(self.data_frame)
         self.columns = self.data_frame.shape[1]
 
@@ -217,6 +218,8 @@ def parse_id(id_, ds):
 
     # randomly eliminate 10% values as the imputation ground-truth
     indices = np.where(~np.isnan(evals))[0].tolist()    # 6 getting indices of the flat evals list that are not nan
+    if ~(not ds.imputing_columns):
+        indices = list(filter(lambda x: (x % 16 in ds.imputing_columns), indices))
     indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
 
     values = evals.copy()
@@ -247,8 +250,8 @@ def parse_id(id_, ds):
 
 
 # dataset = PhysioNetDataset()
-# dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir')
-dataset = StockDataset(30, './stock10k.data', './json/jsonStock')
+dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5])
+# dataset = StockDataset(30, './stock10k.data', './json/jsonStock')
 
 for id_ in dataset.ids:
     print('Processing patient {}'.format(id_))

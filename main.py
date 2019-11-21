@@ -39,7 +39,7 @@ args = parser.parse_args()
 def train(model):
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    data_iter = data_loader.get_loader(batch_size=args.batch_size)
+    data_iter = data_loader.get_loader(batch_size=args.batch_size, shuffle=False)
 
     all_evals = []
     all_imputations = []
@@ -60,9 +60,9 @@ def train(model):
 
         all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
-    plt.plot(all_evals[0:200, :], 'r')
-    plt.plot(all_imputations[0:200, :], 'b')
-    plt.plot(all_eval_masks[0:200, :], 'g.')
+    plt.plot(all_evals[0:200, 5], 'r')
+    plt.plot(all_imputations[0:200, 5], 'b')
+    plt.plot(all_eval_masks[0:200, 5], 'g.')
     plt.subplots_adjust(wspace=2)
     plt.show()
 
@@ -96,7 +96,7 @@ def evaluate(model, val_iter):
             all_eval_masks = np.concatenate((all_eval_masks, eval_masks.reshape(first_d * second_d, third_d)), axis=0)
 
     columns_ones = count_ones_in_columns(all_eval_masks)
-    columns_ones = [float(all_evals.shape[0]) / x for x in columns_ones]
+    columns_ones = [float(all_evals.shape[0]) / max(1, x) for x in columns_ones]
 
     all_evals = np.add(np.multiply(all_evals, settings['std']), np.asarray(settings['mean']))
     all_imputations = np.add(np.multiply(all_imputations, settings['std']), np.asarray(settings['mean']))
