@@ -60,26 +60,15 @@ def train(model):
 def evaluate(model, val_iter):
     model.eval()
 
-    labels = []
-    preds = []
 
     evals = []
     imputations = []
 
-    save_impute = []
-    save_label = []
 
     for idx, data in enumerate(val_iter):
         data = utils.to_var(data)
         ret = model.run_on_batch(data, None)
 
-        # save the imputation results which is used to test the improvement of traditional methods with imputed values
-        save_impute.append(ret['imputations'].data.cpu().numpy())
-        save_label.append(ret['labels'].data.cpu().numpy())
-
-        pred = ret['predictions'].data.cpu().numpy()
-        label = ret['labels'].data.cpu().numpy()
-        is_train = ret['is_train'].data.cpu().numpy()
 
         eval_masks = ret['eval_masks'].data.cpu().numpy()
         eval_ = ret['evals'].data.cpu().numpy()
@@ -88,17 +77,6 @@ def evaluate(model, val_iter):
         evals += eval_[np.where(eval_masks == 1)].tolist()
         imputations += imputation[np.where(eval_masks == 1)].tolist()
 
-        # collect test label & prediction
-        pred = pred[np.where(is_train == 0)]
-        label = label[np.where(is_train == 0)]
-
-        labels += label.tolist()
-        preds += pred.tolist()
-
-    labels = np.asarray(labels).astype('int32')
-    preds = np.asarray(preds)
-
-    # print 'AUC {}'.format(metrics.roc_auc_score(labels, preds))
 
     evals = np.asarray(evals)
     imputations = np.asarray(imputations)
@@ -108,11 +86,6 @@ def evaluate(model, val_iter):
 
     print 'MRE', np.abs(evals - imputations).sum() / np.abs(evals).sum()
 
-    save_impute = np.concatenate(save_impute, axis=0)
-    save_label = np.concatenate(save_label, axis=0)
-
-    np.save('./result/{}_data'.format(args.model), save_impute)
-    np.save('./result/{}_label'.format(args.model), save_label)
 
     return evals, imputations
 
