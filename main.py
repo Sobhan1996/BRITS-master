@@ -21,6 +21,11 @@ from sklearn import metrics
 
 from ipdb import set_trace
 
+import json
+
+with open('./models/settings.txt') as json_file:
+    settings = json.load(json_file)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=1000)
 parser.add_argument('--batch_size', type=int, default=32)
@@ -93,6 +98,10 @@ def evaluate(model, val_iter):
     columns_ones = count_ones_in_columns(all_eval_masks)
     columns_ones = [float(all_evals.shape[0]) / x for x in columns_ones]
 
+    all_evals = np.add(np.multiply(all_evals, settings['std']), np.asarray(settings['mean']))
+    all_imputations = np.add(np.multiply(all_imputations, settings['std']), np.asarray(settings['mean']))
+
+    print '\n'
     print 'MAE', np.multiply(np.abs(all_evals - all_imputations).mean(axis=0), columns_ones)
     print 'MRE', np.abs(all_evals - all_imputations).sum(axis=0) / np.abs(all_evals[np.where(all_eval_masks == 1)]).sum(axis=0)
 

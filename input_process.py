@@ -14,6 +14,8 @@ class BRITSDataset:
         self.set_ids()
         self.columns = 0
         self.fs = None
+        self.mean = []
+        self.std = []
 
     def set_ids(self):
         pass
@@ -28,10 +30,14 @@ class BRITSDataset:
         return evals
 
     def __del__(self):
+        self.mean = self.mean.tolist()
+        self.std = self.std.tolist()
         data = {
             "SEQ_LEN": self.window,
             "COLUMNS": self.columns,
-            "JsonFile": self.fs.name
+            "JsonFile": self.fs.name,
+            "mean": self.mean,
+            "std": self.std
         }
         with open('./models/settings.txt', 'w') as outfile:
             js.dump(data, outfile)
