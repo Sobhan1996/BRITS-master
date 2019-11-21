@@ -155,15 +155,15 @@ class StockDataset(UCIDataset):
 
         self.fs = open(output_json, 'w')
 
-    def update_evals(self, orig_evals, id_):
-        frame = self.evals_data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
-        evals = []
-        for i in range(self.window):
-            evals.append(list(frame.iloc[i, :]))
-
-        evals = (np.array(evals) - self.mean) / self.std
-
-        return evals
+    # def update_evals(self, orig_evals, id_):
+    #     frame = self.evals_data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
+    #     evals = []
+    #     for i in range(self.window):
+    #         evals.append(list(frame.iloc[i, :]))
+    #
+    #     evals = (np.array(evals) - self.mean) / self.std
+    #
+    #     return evals
 
 
 

@@ -64,8 +64,6 @@ def train(model):
 def evaluate(model, val_iter):
     model.eval()
 
-    evals = []
-    imputations = []
     all_eval_masks = []
     all_imputations = []
     all_evals = []
@@ -75,13 +73,9 @@ def evaluate(model, val_iter):
         data = utils.to_var(data)
         ret = model.run_on_batch(data, None)
 
-
         eval_masks = ret['eval_masks'].data.cpu().numpy()
         eval_ = ret['evals'].data.cpu().numpy()
         imputation = ret['imputations'].data.cpu().numpy()
-
-        evals += eval_[np.where(eval_masks == 1)].tolist()
-        imputations += imputation[np.where(eval_masks == 1)].tolist()
 
         first_d = eval_masks.shape[0]
         second_d = eval_masks.shape[1]
@@ -96,16 +90,21 @@ def evaluate(model, val_iter):
             all_imputations = np.concatenate((all_imputations, imputation.reshape(first_d * second_d, third_d)), axis=0)
             all_eval_masks = np.concatenate((all_eval_masks, eval_masks.reshape(first_d * second_d, third_d)), axis=0)
 
-    evals = np.asarray(evals)
-    imputations = np.asarray(imputations)
-    print '\n'
+    columns_ones = count_ones_in_columns(all_eval_masks)
+    columns_ones = [float(all_evals.shape[0]) / x for x in columns_ones]
 
-    print 'MAE', np.abs(evals - imputations).mean()
-
-    print 'MRE', np.abs(evals - imputations).sum() / np.abs(evals).sum()
-
+    print 'MAE', np.multiply(np.abs(all_evals - all_imputations).mean(axis=0), columns_ones)
+    print 'MRE', np.abs(all_evals - all_imputations).sum(axis=0) / np.abs(all_evals[np.where(all_eval_masks == 1)]).sum(axis=0)
 
     return all_evals, all_imputations, all_eval_masks
+
+
+def count_ones_in_columns(masks):
+    counts = []
+    for i in range(0, masks.shape[1]):
+        count = np.count_nonzero(masks[:, i])
+        counts.append(count)
+    return counts
 
 
 def run():
