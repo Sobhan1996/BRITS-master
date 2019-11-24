@@ -60,9 +60,9 @@ def train(model):
 
         all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
-    plt.plot(all_evals[0:1000, 5], 'r')
-    plt.plot(all_imputations[0:1000, 5], 'b')
-    plt.plot(all_eval_masks[0:1000, 5], 'g.')
+    plt.plot(all_evals[0:10000, 5], 'r')
+    plt.plot(all_imputations[0:10000, 5], 'b')
+    plt.plot(all_eval_masks[0:10000, 5], 'g.')
     plt.subplots_adjust(wspace=2)
     plt.show()
 
@@ -108,6 +108,19 @@ def evaluate(model, val_iter):
     print('MAE', np.divide(np.nansum(eval_imputed_diff, axis=0), columns_ones))
     print('MRE', np.divide(np.nansum(eval_imputed_diff, axis=0), np.nansum(np.multiply(np.abs(all_evals), all_eval_masks), axis=0)))
 
+    eval_imputed_diff_squared = [x ** 2 for x in eval_imputed_diff]
+    attributes_variance = np.nanvar(all_evals, axis=0)
+    nrms_denominator = np.multiply(attributes_variance, columns_ones)
+    nrms_vector = np.sqrt(np.divide(np.nansum(eval_imputed_diff_squared), nrms_denominator))
+    nrms_vector[nrms_vector == np.inf] = 0
+
+    print('NRMS Vector', nrms_vector)
+
+    nrms_vector_squared = [x ** 2 for x in nrms_vector]
+    nrms = np.sqrt(np.dot(nrms_vector_squared, columns_ones) / np.sum(columns_ones))
+
+    print('NRMS', nrms)
+
     return all_evals, all_imputations, all_eval_masks
 
 
@@ -115,7 +128,7 @@ def count_ones_in_columns(masks):
     counts = []
     for i in range(0, masks.shape[1]):
         count = np.count_nonzero(masks[:, i])
-        counts.append(max(1, count))
+        counts.append(count)
     return counts
 
 

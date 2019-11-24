@@ -152,7 +152,7 @@ class StockDataset(UCIDataset):
         BRITSDataset.__init__(self, window)
 
         self.evals_data_frame = self.data_frame[[' truth']]
-        self.data_frame = self.data_frame.drop([' truth'], axis=1)
+        self.data_frame = self.data_frame.drop([' dirty'], axis=1)
 
         self.data_frame = pd.get_dummies(self.data_frame)
         self.columns = self.data_frame.shape[1]
