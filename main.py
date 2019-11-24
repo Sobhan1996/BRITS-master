@@ -98,15 +98,15 @@ def evaluate(model, val_iter):
             all_imputations = np.concatenate((all_imputations, imputation.reshape(first_d * second_d, third_d)), axis=0)
             all_eval_masks = np.concatenate((all_eval_masks, eval_masks.reshape(first_d * second_d, third_d)), axis=0)
 
-    columns_ones = count_ones_in_columns(all_eval_masks)
-    columns_ones = [float(all_evals.shape[0]) / max(1, x) for x in columns_ones]
 
     all_evals = np.add(np.multiply(all_evals, settings['std']), np.asarray(settings['mean']))
     all_imputations = np.add(np.multiply(all_imputations, settings['std']), np.asarray(settings['mean']))
 
-    print '\n'
-    print 'MAE', np.multiply(np.abs(all_evals - all_imputations).mean(axis=0), columns_ones)
-    print 'MRE', np.abs(all_evals - all_imputations).sum(axis=0) / np.abs(all_evals[np.where(all_eval_masks == 1)]).sum(axis=0)
+    columns_ones = count_ones_in_columns(all_eval_masks)
+    eval_imputed_diff = np.multiply(np.abs(all_evals - all_imputations), all_eval_masks)
+
+    print('MAE', np.divide(np.nansum(eval_imputed_diff, axis=0), columns_ones))
+    print('MRE', np.divide(np.nansum(eval_imputed_diff, axis=0), np.nansum(np.multiply(np.abs(all_evals), all_eval_masks), axis=0)))
 
     return all_evals, all_imputations, all_eval_masks
 
@@ -115,7 +115,7 @@ def count_ones_in_columns(masks):
     counts = []
     for i in range(0, masks.shape[1]):
         count = np.count_nonzero(masks[:, i])
-        counts.append(count)
+        counts.append(max(1, count))
     return counts
 
 
