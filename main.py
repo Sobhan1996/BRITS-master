@@ -66,6 +66,9 @@ def train(model):
     plt.subplots_adjust(wspace=2)
     plt.show()
 
+    np.savetxt('../XGB_Experiment/all_eval_masks.txt', all_eval_masks)
+
+
 def evaluate(model, val_iter):
     model.eval()
 

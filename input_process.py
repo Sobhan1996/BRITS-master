@@ -220,7 +220,8 @@ def parse_id(id_, ds):
     indices = np.where(~np.isnan(evals))[0].tolist()    # 6 getting indices of the flat evals list that are not nan
     if ~(not ds.imputing_columns):
         indices = list(filter(lambda x: (x % 16 in ds.imputing_columns), indices))
-    indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
+    if len(indices) > 10:
+        indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
 
     values = evals.copy()
     values[indices] = np.nan    # 8 setting 10 percent indices to nan in the new list values which has been copied from evals
