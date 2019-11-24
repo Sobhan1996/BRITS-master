@@ -60,9 +60,9 @@ def train(model):
 
         all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
-    plt.plot(all_evals[0:200, 5], 'r')
-    plt.plot(all_imputations[0:200, 5], 'b')
-    plt.plot(all_eval_masks[0:200, 5], 'g.')
+    plt.plot(all_evals[0:1000, 5], 'r')
+    plt.plot(all_imputations[0:1000, 5], 'b')
+    plt.plot(all_eval_masks[0:1000, 5], 'g.')
     plt.subplots_adjust(wspace=2)
     plt.show()
 

@@ -219,7 +219,7 @@ def parse_id(id_, ds):
     # randomly eliminate 10% values as the imputation ground-truth
     indices = np.where(~np.isnan(evals))[0].tolist()    # 6 getting indices of the flat evals list that are not nan
     if ~(not ds.imputing_columns):
-        indices = list(filter(lambda x: (x % 16 in ds.imputing_columns), indices))
+        indices = list(filter(lambda x: (x % ds.columns in ds.imputing_columns), indices))
     if len(indices) > 10:
         indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
 
