@@ -60,13 +60,15 @@ def train(model):
 
         all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
-    plt.plot(all_evals[0:10000, 5], 'r')
-    plt.plot(all_imputations[0:10000, 5], 'b')
-    plt.plot(all_eval_masks[0:10000, 5], 'g.')
+    imputing_columns = settings['imputing_columns']
+
+    plt.plot(all_evals[0:10000, imputing_columns[0]], 'r')
+    plt.plot(all_imputations[0:10000, imputing_columns[0]], 'b')
+    plt.plot(all_eval_masks[0:10000, imputing_columns[0]], 'g.')
     plt.subplots_adjust(wspace=2)
     plt.show()
 
-    np.savetxt('../XGB_Experiment/all_eval_masks.txt', all_eval_masks)
+    np.savetxt(settings['eval_masks_output'], all_eval_masks)
 
 
 def evaluate(model, val_iter):

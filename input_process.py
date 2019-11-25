@@ -17,6 +17,7 @@ class BRITSDataset:
         self.mean = []
         self.std = []
         self.imputing_columns = []
+        self.eval_masks_output = ''
 
     def set_ids(self):
         pass
@@ -38,7 +39,9 @@ class BRITSDataset:
             "COLUMNS": self.columns,
             "JsonFile": self.fs.name,
             "mean": self.mean,
-            "std": self.std
+            "std": self.std,
+            "eval_masks_output": self.eval_masks_output,
+            "imputing_columns": self.imputing_columns
         }
         with open('./models/settings.txt', 'w') as outfile:
             js.dump(data, outfile)
@@ -116,8 +119,8 @@ class PhysioNetDataset(BRITSDataset):
 
 
 class UCIDataset(BRITSDataset):
-    def __init__(self, window, source_dataset, output_json, imputing_columns):
-        self.data_frame = pd.read_csv(source_dataset)
+    def __init__(self, window, source_dataset, output_json, imputing_columns, eval_masks_output):
+        self.read_dataset(source_dataset)
         BRITSDataset.__init__(self, window)
         self.imputing_columns = imputing_columns
         self.data_frame = pd.get_dummies(self.data_frame)
@@ -126,7 +129,12 @@ class UCIDataset(BRITSDataset):
         self.mean = np.asarray(list(self.data_frame.mean(axis=0)))
         self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
 
+        self.eval_masks_output = eval_masks_output
+
         self.fs = open(output_json, 'w')
+
+    def read_dataset(self, source_dataset):
+        self.data_frame = pd.read_csv(source_dataset)
 
     def set_ids(self):
         self.ids = range(0, self.data_frame.shape[0] / self.window)
@@ -145,8 +153,14 @@ class UCIDataset(BRITSDataset):
         return evals
 
 
+class HumanActivityDataset(UCIDataset):
+    def read_dataset(self, source_dataset):
+        self.data_frame = pd.read_csv(source_dataset)
+        self.data_frame = self.data_frame.drop(['date'], axis=1)
+
+
 class StockDataset(UCIDataset):
-    def __init__(self, window, source_dataset, output_json):
+    def __init__(self, window, source_dataset, output_json, eval_masks_output):
         self.data_frame = pd.read_csv(source_dataset)
         self.data_frame = self.data_frame.drop(['timestamp'], axis=1)
         BRITSDataset.__init__(self, window)
@@ -159,6 +173,8 @@ class StockDataset(UCIDataset):
 
         self.mean = np.asarray(list(self.data_frame.mean(axis=0)))
         self.std = np.asarray(list(self.data_frame.std(axis=0, skipna=True)))
+
+        self.eval_masks_output = eval_masks_output
 
         self.fs = open(output_json, 'w')
 
@@ -250,8 +266,9 @@ def parse_id(id_, ds):
 
 
 # dataset = PhysioNetDataset()
-dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5])
-# dataset = StockDataset(30, './stock10k.data', './json/jsonStock')
+dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Experiment/all_eval_masks_air.txt')
+# dataset = StockDataset(30, './stock10k.data', './json/jsonStock', '../XGB_Experiment/all_eval_masks_stock.txt')
+# dataset = HumanActivityDataset(50, './ConfLongDemo_JSI.txt', './json/jsonHuman', [1], '../XGB_Experiment/all_eval_masks_human.txt')
 
 for id_ in dataset.ids:
     print('Processing data point {}'.format(id_))
