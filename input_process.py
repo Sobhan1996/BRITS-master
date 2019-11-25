@@ -249,7 +249,7 @@ def parse_id(id_, ds):
         indices = list(filter(lambda x: (x % ds.columns in ds.imputing_columns), indices))
 
     if len(indices) > 10:
-    # if len(indices) > 10 and (not 180 < id_ < 188):
+    # if len(indices) > 10 and (not 50 < id_ < 54):
         indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
 
     values = evals.copy()

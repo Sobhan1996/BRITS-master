@@ -62,10 +62,12 @@ def train(model):
 
     imputing_columns = settings['imputing_columns']
 
-    plt.plot(all_evals[:, imputing_columns[0]], 'r')
-    plt.plot(all_imputations[:, imputing_columns[0]], 'b')
+    plt.plot(all_evals[:, imputing_columns[0]], 'r', label="True")
+    plt.plot(all_imputations[:, imputing_columns[0]], 'b', label="Imputed")
     plt.plot(all_eval_masks[:, imputing_columns[0]], 'g.')
     plt.subplots_adjust(wspace=2)
+    plt.legend(loc="upper left")
+    plt.title('BRITS')
     plt.show()
 
     np.savetxt(settings['eval_masks_output'], all_eval_masks)
