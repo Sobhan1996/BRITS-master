@@ -245,7 +245,6 @@ def parse_id(id_, ds):
     rec['forward'] = parse_rec(values, masks, evals, eval_masks, ds.window, ds.columns, dir_='forward')
     rec['backward'] = parse_rec(values[::-1], masks[::-1], evals[::-1], eval_masks[::-1], ds.window, ds.columns, dir_='backward')
     rec = json.dumps(rec)
-    # print(rec)
 
     ds.fs.write(rec + '\n')
 
