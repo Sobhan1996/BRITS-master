@@ -62,9 +62,9 @@ def train(model):
 
     imputing_columns = settings['imputing_columns']
 
-    plt.plot(all_evals[0:10000, imputing_columns[0]], 'r')
-    plt.plot(all_imputations[0:10000, imputing_columns[0]], 'b')
-    plt.plot(all_eval_masks[0:10000, imputing_columns[0]], 'g.')
+    plt.plot(all_evals[:, imputing_columns[0]], 'r')
+    plt.plot(all_imputations[:, imputing_columns[0]], 'b')
+    plt.plot(all_eval_masks[:, imputing_columns[0]], 'g.')
     plt.subplots_adjust(wspace=2)
     plt.show()
 

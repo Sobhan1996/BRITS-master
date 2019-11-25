@@ -159,6 +159,16 @@ class HumanActivityDataset(UCIDataset):
         self.data_frame = self.data_frame.drop(['date'], axis=1)
 
 
+class EnergyDataDataset(UCIDataset):
+    def read_dataset(self, source_dataset):
+        self.data_frame = pd.read_csv(source_dataset)
+        self.data_frame['date2'] = pd.to_datetime(self.data_frame['date'])
+        self.data_frame['month'] = self.data_frame['date2'].dt.month
+        self.data_frame['hour'] = self.data_frame['date2'].dt.hour
+        self.data_frame = self.data_frame.drop(['date'], axis=1)
+        self.data_frame = self.data_frame.drop(['date2'], axis=1)
+
+
 class StockDataset(UCIDataset):
     def __init__(self, window, source_dataset, output_json, eval_masks_output):
         self.data_frame = pd.read_csv(source_dataset)
@@ -266,9 +276,10 @@ def parse_id(id_, ds):
 
 
 # dataset = PhysioNetDataset()
-dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Experiment/all_eval_masks_air.txt')
+# dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Experiment/all_eval_masks_air.txt')
 # dataset = StockDataset(30, './stock10k.data', './json/jsonStock', '../XGB_Experiment/all_eval_masks_stock.txt')
 # dataset = HumanActivityDataset(50, './ConfLongDemo_JSI.txt', './json/jsonHuman', [1], '../XGB_Experiment/all_eval_masks_human.txt')
+dataset = EnergyDataDataset(50, './energydata_complete.csv', './json/jsonEnergy', [6], '../XGB_Experiment/all_eval_masks_energy.txt')
 
 for id_ in dataset.ids:
     print('Processing data point {}'.format(id_))
