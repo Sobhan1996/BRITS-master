@@ -170,10 +170,11 @@ class EnergyDataDataset(UCIDataset):
 
 
 class StockDataset(UCIDataset):
-    def __init__(self, window, source_dataset, output_json, eval_masks_output):
+    def __init__(self, window, source_dataset, output_json, imputing_columns, eval_masks_output):
         self.data_frame = pd.read_csv(source_dataset)
-        self.data_frame = self.data_frame.drop(['timestamp'], axis=1)
         BRITSDataset.__init__(self, window)
+
+        self.imputing_columns = imputing_columns
 
         self.evals_data_frame = self.data_frame[[' truth']]
         self.data_frame = self.data_frame.drop([' dirty'], axis=1)
@@ -188,15 +189,15 @@ class StockDataset(UCIDataset):
 
         self.fs = open(output_json, 'w')
 
-    def update_evals(self, orig_evals, id_):
-        frame = self.evals_data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
-        evals = []
-        for i in range(self.window):
-            evals.append(list(frame.iloc[i, :]))
-
-        evals = (np.array(evals) - self.mean) / self.std
-
-        return evals
+    # def update_evals(self, orig_evals, id_):
+    #     frame = self.evals_data_frame.loc[id_ * self.window: (id_+1) * self.window - 1, :]
+    #     evals = []
+    #     for i in range(self.window):
+    #         evals.append(list(frame.iloc[i, :]))
+    #
+    #     evals = (np.array(evals) - self.mean) / self.std
+    #
+    #     return evals
 
 
 
@@ -246,7 +247,9 @@ def parse_id(id_, ds):
     indices = np.where(~np.isnan(evals))[0].tolist()    # 6 getting indices of the flat evals list that are not nan
     if (not ds.imputing_columns) == False:
         indices = list(filter(lambda x: (x % ds.columns in ds.imputing_columns), indices))
+
     if len(indices) > 10:
+    # if len(indices) > 10 and (not 180 < id_ < 188):
         indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
 
     values = evals.copy()
@@ -277,9 +280,9 @@ def parse_id(id_, ds):
 
 # dataset = PhysioNetDataset()
 # dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Experiment/all_eval_masks_air.txt')
-# dataset = StockDataset(30, './stock10k.data', './json/jsonStock', '../XGB_Experiment/all_eval_masks_stock.txt')
+dataset = StockDataset(30, './stock10k.data', './json/jsonStock', [1], '../XGB_Experiment/all_eval_masks_stock.txt')
 # dataset = HumanActivityDataset(50, './ConfLongDemo_JSI.txt', './json/jsonHuman', [1], '../XGB_Experiment/all_eval_masks_human.txt')
-dataset = EnergyDataDataset(50, './energydata_complete.csv', './json/jsonEnergy', [6], '../XGB_Experiment/all_eval_masks_energy.txt')
+# dataset = EnergyDataDataset(50, './energydata_complete.csv', './json/jsonEnergy', [6], '../XGB_Experiment/all_eval_masks_energy.txt')
 
 for id_ in dataset.ids:
     print('Processing data point {}'.format(id_))
