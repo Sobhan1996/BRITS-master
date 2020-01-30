@@ -27,12 +27,13 @@ with open('./models/settings.txt') as json_file:
     settings = json.load(json_file)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=1000)
+parser.add_argument('--epochs', type=int, default=1) # 1000
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--model', type=str)
-parser.add_argument('--hid_size', type=int)
-parser.add_argument('--impute_weight', type=float)
-parser.add_argument('--label_weight', type=float)
+# parser.add_argument('--model', type=str, default='brits')
+parser.add_argument('--model', type=str, default='rits_i')
+parser.add_argument('--hid_size', type=int, default=108)
+parser.add_argument('--impute_weight', type=float, default=0.3)
+parser.add_argument('--label_weight', type=float, default=1.0)
 args = parser.parse_args()
 
 
