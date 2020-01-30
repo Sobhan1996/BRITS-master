@@ -250,12 +250,12 @@ def parse_id(id_, ds, imputing, percent, index):
     if (not ds.imputing_columns) == False:
         indices = list(filter(lambda x: (x % ds.columns in ds.imputing_columns), indices))
 
-    if imputing:
+    if imputing == 1:
         if len(indices) > 10:
         # if len(indices) > 10 and (not 50 < id_ < 54):
             indices = np.random.choice(indices, len(indices) // percent)     # 7 randomly selecting 10 percent of the non nan indices
     else:
-        indices = index
+        indices = [indices[index]]
 
     values = evals.copy()
     values[indices] = np.nan    # 8 setting 10 percent indices to nan in the new list values which has been copied from evals
@@ -285,7 +285,7 @@ def parse_id(id_, ds, imputing, percent, index):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--percent', type=int, default=10)
-parser.add_argument('--imputing', type=bool, default=True)
+parser.add_argument('--imputing', type=int, default=1)
 parser.add_argument('--index', type=int, default=0)
 args = parser.parse_args()
 

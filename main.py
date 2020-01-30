@@ -62,6 +62,11 @@ def train(model):
 
     imputing_columns = settings['imputing_columns']
 
+    delta_matrix = all_evals[:, imputing_columns[0]] - all_imputations[:, imputing_columns[0]]
+    # print(list(delta_matrix))
+    # print(list(all_eval_masks[:, imputing_columns[0]]))
+    print(list(np.multiply(delta_matrix, all_eval_masks[:, imputing_columns[0]])))
+
     plt.plot(all_evals[:, imputing_columns[0]], 'r', label="True")
     plt.plot(all_imputations[:, imputing_columns[0]], 'b', label="Imputed")
     plt.plot(all_eval_masks[:, imputing_columns[0]], 'g.')
