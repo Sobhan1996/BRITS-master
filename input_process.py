@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import ujson as json
 import json as js
+import sys
+import argparse
 
 class BRITSDataset:
     def __init__(self, window):
@@ -235,7 +237,7 @@ def parse_rec(values, masks, evals, eval_masks, window, columns, dir_):
     return rec
 
 
-def parse_id(id_, ds):
+def parse_id(id_, ds, imputing, percent, index):
 
     evals = ds.read_data(id_)
 
@@ -248,9 +250,12 @@ def parse_id(id_, ds):
     if (not ds.imputing_columns) == False:
         indices = list(filter(lambda x: (x % ds.columns in ds.imputing_columns), indices))
 
-    if len(indices) > 10:
-    # if len(indices) > 10 and (not 50 < id_ < 54):
-        indices = np.random.choice(indices, len(indices) // 10)     # 7 randomly selecting 10 percent of the non nan indices
+    if imputing == 1:
+        if len(indices) > 10:
+        # if len(indices) > 10 and (not 50 < id_ < 54):
+            indices = np.random.choice(indices, len(indices) // percent)     # 7 randomly selecting 10 percent of the non nan indices
+    else:
+        indices = [indices[index]]
 
     values = evals.copy()
     values[indices] = np.nan    # 8 setting 10 percent indices to nan in the new list values which has been copied from evals
@@ -278,6 +283,12 @@ def parse_id(id_, ds):
     ds.fs.write(rec + '\n')
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--percent', type=int, default=10)
+parser.add_argument('--imputing', type=int, default=1)
+parser.add_argument('--index', type=int, default=0)
+args = parser.parse_args()
+
 # dataset = PhysioNetDataset()
 # dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Imputation/all_eval_masks_air.txt')
 dataset = UCIDataset(50, './air.csv', './json/jsonAirSmall', [5], '../XGB_Imputation/all_eval_masks_air.txt')
@@ -288,7 +299,7 @@ dataset = UCIDataset(50, './air.csv', './json/jsonAirSmall', [5], '../XGB_Imputa
 for id_ in dataset.ids:
     print('Processing data point {}'.format(id_))
     try:
-        parse_id(id_, dataset)
+        parse_id(id_, dataset, args.imputing, args.percent, args.index)
     except Exception as e:
         print(e)
         continue
