@@ -28,10 +28,12 @@ with open('./models/settings.txt') as json_file:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=1) # 1000
-parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--batch_size', type=int, default=1)
+# parser.add_argument('--batch_size', type=int, default=32)
 # parser.add_argument('--model', type=str, default='brits')
 parser.add_argument('--model', type=str, default='rits_i')
-parser.add_argument('--hid_size', type=int, default=108)
+# parser.add_argument('--hid_size', type=int, default=108)
+parser.add_argument('--hid_size', type=int, default=16)
 parser.add_argument('--impute_weight', type=float, default=0.3)
 parser.add_argument('--label_weight', type=float, default=1.0)
 args = parser.parse_args()
@@ -57,7 +59,9 @@ def train(model):
 
             run_loss += ret['loss'].item()
 
-            print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
+            # print '\r Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter), run_loss / (idx + 1.0)),
+            print ' Progress epoch {}, {:.2f}%, average loss {}'.format(epoch, (idx + 1) * 100.0 / len(data_iter),
+                                                                          run_loss / (idx + 1.0)),
 
         all_evals, all_imputations, all_eval_masks = evaluate(model, data_iter)
 
@@ -76,7 +80,7 @@ def train(model):
     plt.title('BRITS')
     plt.show()
 
-    np.savetxt(settings['eval_masks_output'], all_eval_masks)
+#    np.savetxt(settings['eval_masks_output'], all_eval_masks)
 
 
 def evaluate(model, val_iter):
@@ -113,6 +117,7 @@ def evaluate(model, val_iter):
     all_imputations = np.add(np.multiply(all_imputations, settings['std']), np.asarray(settings['mean']))
 
     columns_ones = count_ones_in_columns(all_eval_masks)
+
     eval_imputed_diff = np.multiply(np.abs(all_evals - all_imputations), all_eval_masks)
 
     print('MAE', np.divide(np.nansum(eval_imputed_diff, axis=0), columns_ones))

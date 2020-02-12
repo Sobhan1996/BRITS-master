@@ -11,12 +11,13 @@ from torch.utils.data import Dataset, DataLoader
 
 import json
 
-with open('./models/settings.txt') as json_file:
-    data = json.load(json_file)
-
 class MySet(Dataset):
     def __init__(self):
         super(MySet, self).__init__()
+
+        with open('../models/settings.txt') as json_file:
+            data = json.load(json_file)
+
         self.content = open(data['JsonFile']).readlines()
 
         indices = np.arange(len(self.content))
@@ -29,6 +30,7 @@ class MySet(Dataset):
 
     def __getitem__(self, idx):
         rec = json.loads(self.content[idx])
+        ### todo(aoqian): does the ['is_train'] really have no use?
         if idx in self.val_indices:
             rec['is_train'] = 0
         else:
@@ -62,7 +64,8 @@ def get_loader(batch_size = 64, shuffle = True):
     data_set = MySet()
     data_iter = DataLoader(dataset = data_set, \
                               batch_size = batch_size, \
-                              num_workers = 4, \
+                              # num_workers = 4, \
+                              num_workers=1,\
                               shuffle = shuffle, \
                               pin_memory = True, \
                               collate_fn = collate_fn

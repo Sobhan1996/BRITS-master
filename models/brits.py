@@ -18,16 +18,16 @@ from ipdb import set_trace
 
 import json
 
-with open('./models/settings.txt') as json_file:
-    data = json.load(json_file)
-
-SEQ_LEN = data['SEQ_LEN']
-RNN_HID_SIZE = 64
-
 
 class Model(nn.Module):
     def __init__(self, rnn_hid_size, impute_weight, label_weight):
         super(Model, self).__init__()
+
+        with open('../models/settings.txt') as json_file:
+            data = json.load(json_file)
+
+        self.SEQ_LEN = data['SEQ_LEN']
+        self.RNN_HID_SIZE = 64
 
         self.rnn_hid_size = rnn_hid_size
         self.impute_weight = impute_weight

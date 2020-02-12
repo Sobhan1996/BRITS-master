@@ -15,12 +15,7 @@ from ipdb import set_trace
 from sklearn import metrics
 
 import json
-
-with open('./models/settings.txt') as json_file:
-    data = json.load(json_file)
-
-SEQ_LEN = data['SEQ_LEN']
-COLUMNS = data['COLUMNS']
+import os
 
 def binary_cross_entropy_with_logits(input, target, weight=None, size_average=True, reduce=True):
     if not (target.size() == input.size()):
@@ -66,6 +61,12 @@ class Model(nn.Module):
     def __init__(self, rnn_hid_size, impute_weight, label_weight):
         super(Model, self).__init__()
 
+        with open('../models/settings.txt') as json_file:
+            data = json.load(json_file)
+
+        self.SEQ_LEN = data['SEQ_LEN']
+        self.COLUMNS = data['COLUMNS']
+
         self.rnn_hid_size = rnn_hid_size
         self.impute_weight = impute_weight
         self.label_weight = label_weight
@@ -73,10 +74,10 @@ class Model(nn.Module):
         self.build()
 
     def build(self):
-        self.rnn_cell = nn.LSTMCell(COLUMNS * 2, self.rnn_hid_size)
+        self.rnn_cell = nn.LSTMCell(self.COLUMNS * 2, self.rnn_hid_size)
 
-        self.regression = nn.Linear(self.rnn_hid_size, COLUMNS)
-        self.temp_decay = TemporalDecay(input_size = COLUMNS, rnn_hid_size = self.rnn_hid_size)
+        self.regression = nn.Linear(self.rnn_hid_size, self.COLUMNS)
+        self.temp_decay = TemporalDecay(input_size=self.COLUMNS, rnn_hid_size=self.rnn_hid_size)
 
         self.out = nn.Linear(self.rnn_hid_size, 1)
 
@@ -103,7 +104,7 @@ class Model(nn.Module):
 
         imputations = []
 
-        for t in range(SEQ_LEN):
+        for t in range(self.SEQ_LEN):
             x = values[:, t, :]
             m = masks[:, t, :]
             d = deltas[:, t, :]

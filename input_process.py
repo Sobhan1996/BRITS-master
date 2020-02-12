@@ -291,7 +291,7 @@ args = parser.parse_args()
 
 # dataset = PhysioNetDataset()
 # dataset = UCIDataset(50, './PRSA_data_2010.1.1-2014.12.31.csv', './json/jsonAir', [5], '../XGB_Imputation/all_eval_masks_air.txt')
-dataset = UCIDataset(50, './air.csv', './json/jsonAirSmall', [5], '../XGB_Imputation/all_eval_masks_air.txt')
+dataset = UCIDataset(50, './raw/air_1k.csv', './json/jsonAir1k', [5], '../XGB_Imputation/all_eval_masks_air.txt')
 # dataset = StockDataset(30, './stock10k.data', './json/jsonStock', [1], '../XGB_Imputation/all_eval_masks_stock.txt')
 # dataset = HumanActivityDataset(50, './ConfLongDemo_JSI.txt', './json/jsonHuman', [1], '../XGB_Imputation/all_eval_masks_human.txt')
 # dataset = EnergyDataDataset(50, './energydata_complete.csv', './json/jsonEnergy', [6], '../XGB_Imputation/all_eval_masks_energy.txt')
